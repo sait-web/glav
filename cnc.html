@@ -79,6 +79,18 @@
         .stats-panel .stat-row { display: flex; justify-content: space-between; gap: 20px; }
         .stats-panel .stat-label { color: #666; }
         .stats-panel .stat-value { color: var(--accent); font-weight: 700; }
+        
+        .sound-toggle { position: fixed; bottom: 20px; left: 20px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--glass-border); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; background: rgba(10, 10, 20, 0.8); backdrop-filter: blur(10px); z-index: 9999; color: var(--accent); }
+        .sound-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+        .cookie-banner { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; padding: 16px 24px; z-index: 10001; display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; }
+        .cookie-banner.hidden { transform: translateX(-50%) translateY(150%); opacity: 0; pointer-events: none; }
+        .cookie-btn { background: var(--accent); color: black; padding: 8px 20px; border-radius: 8px; font-family: 'Space Mono'; font-size: 12px; cursor: pointer; border: none; }
+        .cookie-text { font-size: 12px; color: #aaa; font-family: 'Manrope'; }
+        .cookie-text a { color: var(--accent); text-decoration: underline; }
+        .consent-label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; font-family: 'Manrope'; cursor: pointer; }
+        .consent-label input { accent-color: var(--accent); width: 16px; height: 16px; }
+        .consent-label a { color: var(--accent); text-decoration: underline; }
+
         .tech-input { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: white; padding: 1rem; width: 100%; font-family: 'Space Mono'; transition: 0.3s; border-radius: 8px; }
         .tech-input:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.05); box-shadow: 0 0 10px rgba(0, 240, 255, 0.1); }
         .tech-btn { background: var(--accent); color: black; font-family: 'Space Mono'; font-weight: bold; padding: 1rem 2rem; border: none; width: 100%; text-transform: uppercase; transition: 0.3s; border-radius: 8px; cursor: pointer; }
@@ -89,13 +101,9 @@
         .modal-btn { border-radius: 8px; transition: all 0.3s; }
         .modal-btn:hover { transform: translateX(5px); }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--bg-color); } ::-webkit-scrollbar-thumb { background: linear-gradient(var(--accent), var(--accent-secondary)); border-radius: 4px; }
-                /* Скрываем панель статистики на мобильных */
-        @media (max-width: 768px) {
-            .stats-panel {
-                display: none !important;
-            }
-        }
-        </style>
+
+        @media (max-width: 768px) { .stats-panel { display: none !important; } }
+    </style>
 </head>
 <body>
     <div class="loader" id="loader">
@@ -123,6 +131,29 @@
     <div class="achievement-popup" id="achievementPopup">
         <div class="achievement-icon" id="achIcon">🏆</div>
         <div><div class="achievement-title">ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО</div><div class="achievement-name" id="achName">Первый клик</div></div>
+    </div>
+
+    <div class="sound-toggle magnetic" id="soundToggle" onclick="toggleSound()" title="Включить/Выключить звук">
+        <i data-lucide="volume-2" id="soundIcon" style="width: 18px; height: 18px;"></i>
+    </div>
+
+    <div class="cookie-banner glass" id="cookieBanner">
+        <p class="cookie-text">Мы используем cookies для улучшения работы сайта. Продолжая, вы соглашаетесь с <a href="#" onclick="openPrivacyModal(); return false;">политикой конфиденциальности</a>.</p>
+        <button class="cookie-btn magnetic" onclick="acceptCookies()">ПРИНЯТЬ</button>
+    </div>
+
+    <div id="privacyModal" class="modal-overlay" onclick="if(event.target===this)closePrivacyModal()">
+        <div class="modal-box" style="max-width: 600px;">
+            <h3 class="text-xl mono mb-4 text-white">ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ</h3>
+            <div class="text-sm text-gray-400 space-y-2 max-h-60 overflow-y-auto pr-2" style="font-family: 'Manrope'; text-transform: none;">
+                <p>В соответствии с Федеральным законом № 152-ФЗ «О персональных данных», мы гарантируем полную конфиденциальность ваших данных.</p>
+                <p>1. Сбор данных: Имя и контактный телефон собираются исключительно для связи с вами по поводу вашего заказа.</p>
+                <p>2. Хранение: Данные не передаются третьим лицам и хранятся в защищенных мессенджерах (MAX, Telegram, WhatsApp).</p>
+                <p>3. Cookies: Сайт использует локальные cookies для улучшения пользовательского опыта (сохранение настроек звука и темы).</p>
+                <p>4. Удаление: Вы можете запросить удаление ваших данных в любой момент, просто написав нам.</p>
+            </div>
+            <button onclick="closePrivacyModal()" class="w-full bg-[#00f0ff] text-black py-3 mono font-bold mt-6 magnetic modal-btn">ЗАКРЫТЬ</button>
+        </div>
     </div>
 
     <header class="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] md:w-auto z-50 glass px-6 py-4 flex justify-between items-center gap-6">
@@ -181,6 +212,12 @@
                         <div><label class="block text-xs mono text-gray-500 mb-2">ИМЯ</label><input type="text" name="name" required class="tech-input magnetic"></div>
                         <div><label class="block text-xs mono text-gray-500 mb-2">ТЕЛЕФОН</label><input type="tel" name="phone" required class="tech-input magnetic"></div>
                     </div>
+                    
+                    <label class="consent-label">
+                        <input type="checkbox" required name="consent">
+                        <span>Я согласен на обработку <a href="#" onclick="openPrivacyModal(); return false;">персональных данных</a></span>
+                    </label>
+
                     <button type="submit" class="tech-btn magnetic mt-4">ЗАПУСТИТЬ РАСЧЕТ</button>
                 </form>
             </div>
@@ -197,18 +234,28 @@
         </div>
     </div>
     <div id="maxInstructionModal" class="modal-overlay" onclick="if(event.target===this)closeMaxModal()">
-        <div class="modal-box border-[#0077FF]"><h3 class="text-xl mono mb-4 text-[#0077FF]">БУФЕР ОБМЕНА ЗАПОЛНЕН</h3><p class="text-sm text-gray-400 mb-6">1. Откроется MAX.<br>2. Найдите чат по номеру +7 (939) 745-45-28.<br>3. Вставьте текст (Ctrl+V).</p><button onclick="openMaxChat()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold magnetic modal-btn">ОТКРЫТЬ MAX</button></div>
+        <div class="modal-box border-[#0077FF]"><h3 class="text-xl mono mb-4 text-[#0077FF]">БУФЕР ОБМЕНА ЗАПОЛНЕН</h3><p class="text-sm text-gray-400 mb-6">1. Откроется MAX.<br>2. Найдите чат по номеру +7 (931) 104-96-44.<br>3. Вставьте текст (Ctrl+V).</p><button onclick="openMaxChat()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold magnetic modal-btn">ОТКРЫТЬ MAX</button></div>
     </div>
     <div id="warningModal" class="modal-overlay" onclick="if(event.target===this)closeWarningModal()">
         <div class="modal-box border-red-500/50"><h3 class="text-xl mono mb-4 text-red-500">ВНИМАНИЕ</h3><p class="text-sm text-gray-400 mb-6">Мессенджеры могут работать с задержкой. Рекомендуем MAX.</p><button onclick="redirectToMaxFromWarning()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold mb-3 magnetic modal-btn">ПЕРЕЙТИ В MAX</button><button id="fallbackBtn" class="w-full border border-white/10 py-2 text-xs mono text-gray-500 hover:text-white magnetic modal-btn"></button></div>
     </div>
 
     <script>
-        const state = { clicks: 0, scroll: 0, startTime: Date.now(), achievements: new Set(), mouseX: window.innerWidth / 2, mouseY: window.innerHeight / 2 };
+                const state = {
+            clicks: parseInt(localStorage.getItem('kvant_clicks')) || 0,
+            scroll: 0,
+            startTime: parseInt(localStorage.getItem('kvant_start_time')) || Date.now(),
+            achievements: new Set(),
+            mouseX: window.innerWidth / 2,
+            mouseY: window.innerHeight / 2
+        };
+        localStorage.setItem('kvant_start_time', state.startTime);
+        let isMuted = localStorage.getItem('kvant_muted') === 'true';
         let loadProgress = 0; const loaderInterval = setInterval(() => { loadProgress += Math.random() * 12 + 3; if (loadProgress >= 100) { loadProgress = 100; clearInterval(loaderInterval); setTimeout(() => document.getElementById('loader').classList.add('hidden'), 400); } document.getElementById('loaderPercent').textContent = Math.floor(loadProgress) + '%'; document.getElementById('loaderBarFill').style.width = loadProgress + '%'; }, 80);
-        document.addEventListener('click', (e) => { state.clicks++; document.getElementById('statClicks').textContent = state.clicks; const colors = ['#00f0ff', '#7000ff', '#ff0040', '#ffff00']; for (let i = 0; i < 20; i++) { const p = document.createElement('div'); p.className = 'explosion-particle'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px'; p.style.background = colors[Math.floor(Math.random() * colors.length)]; const angle = (Math.PI * 2 * i) / 20; const distance = 50 + Math.random() * 80; p.style.setProperty('--dx', Math.cos(angle) * distance + 'px'); p.style.setProperty('--dy', Math.sin(angle) * distance + 'px'); document.body.appendChild(p); setTimeout(() => p.remove(), 800); } playClickSound(); checkAchievements(); });
-        let audioCtx; function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } function playClickSound() { try { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = 800 + Math.random() * 400; osc.type = 'sine'; gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1); osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.1); } catch(e) {} }
-        function playAchievementSound() { try { initAudio(); const notes = [523, 659, 784, 1047]; notes.forEach((freq, i) => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = freq; osc.type = 'triangle'; const startTime = audioCtx.currentTime + i * 0.1; gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.12, startTime + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3); osc.start(startTime); osc.stop(startTime + 0.3); }); } catch(e) {} }
+        document.addEventListener('click', (e) => { state.clicks++; localStorage.setItem('kvant_clicks', state.clicks); document.getElementById('statClicks').textContent = state.clicks; const colors = ['#00f0ff', '#7000ff', '#ff0040', '#ffff00']; for (let i = 0; i < 20; i++) { const p = document.createElement('div'); p.className = 'explosion-particle'; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px'; p.style.background = colors[Math.floor(Math.random() * colors.length)]; const angle = (Math.PI * 2 * i) / 20; const distance = 50 + Math.random() * 80; p.style.setProperty('--dx', Math.cos(angle) * distance + 'px'); p.style.setProperty('--dy', Math.sin(angle) * distance + 'px'); document.body.appendChild(p); setTimeout(() => p.remove(), 800); } playClickSound(); checkAchievements(); });
+        let audioCtx; function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } function playClickSound() { if (isMuted) return; try { initAudio(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = 800 + Math.random() * 400; osc.type = 'sine'; gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1); osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.1); } catch(e) {} }
+        function playAchievementSound() { if (isMuted) return; try { initAudio(); const notes = [523, 659, 784, 1047]; notes.forEach((freq, i) => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value = freq; osc.type = 'triangle'; const startTime = audioCtx.currentTime + i * 0.1; gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.12, startTime + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3); osc.start(startTime); osc.stop(startTime + 0.3); }); } catch(e) {} }
+        function toggleSound() { isMuted = !isMuted; const icon = document.getElementById('soundIcon'); icon.setAttribute('data-lucide', isMuted ? 'volume-x' : 'volume-2'); lucide.createIcons(); localStorage.setItem('kvant_muted', isMuted); }
         const achievementsList = { firstClick: { name: 'Первый контакт', icon: '👆', check: () => state.clicks >= 1 }, clicker: { name: 'Кликер', icon: '🖱️', check: () => state.clicks >= 10 }, maniac: { name: 'Кликомания', icon: '⚡', check: () => state.clicks >= 50 }, explorer: { name: 'Исследователь', icon: '🗺️', check: () => state.scroll >= 50 }, deepDive: { name: 'Глубокое погружение', icon: '🌊', check: () => state.scroll >= 90 }, patient: { name: 'Терпеливый', icon: '⏳', check: () => (Date.now() - state.startTime) >= 60000 }, observer: { name: 'Наблюдатель', icon: '👁️', check: () => (Date.now() - state.startTime) >= 180000 }, speedster: { name: 'Скоростной', icon: '🚀', check: () => state.scroll >= 80 && (Date.now() - state.startTime) < 30000 } };
         function checkAchievements() { Object.entries(achievementsList).forEach(([key, ach]) => { if (!state.achievements.has(key) && ach.check()) { state.achievements.add(key); showAchievement(ach); document.getElementById('statAch').textContent = `${state.achievements.size}/8`; } }); } function showAchievement(ach) { playAchievementSound(); const popup = document.getElementById('achievementPopup'); document.getElementById('achIcon').textContent = ach.icon; document.getElementById('achName').textContent = ach.name; popup.classList.add('show'); setTimeout(() => popup.classList.remove('show'), 4000); } setInterval(checkAchievements, 1000);
         setInterval(() => { const elapsed = Math.floor((Date.now() - state.startTime) / 1000); document.getElementById('statTime').textContent = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`; }, 1000);
@@ -231,7 +278,22 @@
         function warnAndSend(messenger) { selectedFallbackMessenger = messenger; const btn = document.getElementById('fallbackBtn'); btn.innerHTML = `ВСЕ ЖЕ ${messenger === 'telegram' ? 'TELEGRAM' : 'WHATSAPP'} [НЕ ЖЕЛАТЕЛЬНО]`; closeModal(); document.getElementById('warningModal').classList.add('open'); }
         function redirectToMaxFromWarning() { closeWarningModal(); navigator.clipboard.writeText(pendingText).then(() => { document.getElementById('maxInstructionModal').classList.add('open'); }); }
         document.getElementById('fallbackBtn').onclick = function() { let url = selectedFallbackMessenger === 'telegram' ? `https://t.me/group_alpha_support?text=${encodeURIComponent(pendingText)}` : `https://wa.me/79311049644?text=${encodeURIComponent(pendingText)}`; window.open(url, '_blank'); closeWarningModal(); };
-        window.addEventListener('load', () => { lucide.createIcons(); });
+
+        function acceptCookies() { document.getElementById('cookieBanner').classList.add('hidden'); localStorage.setItem('kvant_cookies', 'accepted'); }
+        function openPrivacyModal() { document.getElementById('privacyModal').classList.add('open'); }
+        function closePrivacyModal() { document.getElementById('privacyModal').classList.remove('open'); }
+
+        window.addEventListener('load', () => { 
+            lucide.createIcons(); 
+            if (localStorage.getItem('kvant_muted') === 'true') { isMuted = true; const icon = document.getElementById('soundIcon'); if (icon) { icon.setAttribute('data-lucide', 'volume-x'); lucide.createIcons(); } }
+            if (localStorage.getItem('kvant_cookies') === 'accepted') { const banner = document.getElementById('cookieBanner'); if (banner) banner.classList.add('hidden'); }
+        });
+        window.addEventListener('load', () => { 
+    lucide.createIcons(); 
+    document.getElementById('statClicks').textContent = state.clicks;
+    if (isMuted) { const icon = document.getElementById('soundIcon'); if (icon) { icon.setAttribute('data-lucide', 'volume-x'); lucide.createIcons(); } }
+    if (localStorage.getItem('kvant_cookies') === 'accepted') { const banner = document.getElementById('cookieBanner'); if (banner) banner.classList.add('hidden'); }
+});
     </script>
 </body>
 </html>
