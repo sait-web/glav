@@ -228,13 +228,14 @@
         <div class="modal-box"><h3 class="text-xl mono mb-6 text-white">ВЫБОР ПРОТОКОЛА</h3>
             <div class="space-y-3">
                 <button onclick="sendTo('max')" class="w-full p-4 border border-[#0077FF] hover:bg-[#0077FF]/20 text-left flex justify-between items-center group modal-btn magnetic"><span class="mono font-bold text-[#0077FF]">MAX (VK)</span><span class="text-xs text-gray-500 group-hover:text-white">ПРИОРИТЕТ</span></button>
+                <button onclick="sendTo('email')" class="w-full p-4 border border-[#00f0ff] hover:bg-[#00f0ff]/20 text-left flex justify-between items-center group modal-btn magnetic"><span class="mono font-bold text-[#00f0ff]">EMAIL</span><span class="text-xs text-gray-500 group-hover:text-white">ПРИОРИТЕТ</span></button>
                 <button onclick="warnAndSend('telegram')" class="w-full p-4 border border-white/10 hover:border-[#2AABEE] text-left flex justify-between items-center modal-btn magnetic"><span class="mono">TELEGRAM</span><span class="text-[10px] text-red-500">НЕСТАБИЛЬНО</span></button>
                 <button onclick="warnAndSend('whatsapp')" class="w-full p-4 border border-white/10 hover:border-[#25D366] text-left flex justify-between items-center modal-btn magnetic"><span class="mono">WHATSAPP</span><span class="text-[10px] text-red-500">НЕСТАБИЛЬНО</span></button>
             </div>
         </div>
     </div>
     <div id="maxInstructionModal" class="modal-overlay" onclick="if(event.target===this)closeMaxModal()">
-        <div class="modal-box border-[#0077FF]"><h3 class="text-xl mono mb-4 text-[#0077FF]">БУФЕР ОБМЕНА ЗАПОЛНЕН</h3><p class="text-sm text-gray-400 mb-6">1. Откроется MAX.<br>2. Найдите чат по номеру +7 (931) 104-96-44.<br>3. Вставьте текст (Ctrl+V).</p><button onclick="openMaxChat()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold magnetic modal-btn">ОТКРЫТЬ MAX</button></div>
+        <div class="modal-box border-[#0077FF]"><h3 class="text-xl mono mb-4 text-[#0077FF]">БУФЕР ОБМЕНА ЗАПОЛНЕН</h3><p class="text-sm text-gray-400 mb-6">1. Откроется MAX.<br>2. Найдите чат по номеру +7 (939) 745-45-28.<br>3. Вставьте текст (Ctrl+V).</p><button onclick="openMaxChat()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold magnetic modal-btn">ОТКРЫТЬ MAX</button></div>
     </div>
     <div id="warningModal" class="modal-overlay" onclick="if(event.target===this)closeWarningModal()">
         <div class="modal-box border-red-500/50"><h3 class="text-xl mono mb-4 text-red-500">ВНИМАНИЕ</h3><p class="text-sm text-gray-400 mb-6">Мессенджеры могут работать с задержкой. Рекомендуем MAX.</p><button onclick="redirectToMaxFromWarning()" class="w-full bg-[#0077FF] text-white py-3 mono font-bold mb-3 magnetic modal-btn">ПЕРЕЙТИ В MAX</button><button id="fallbackBtn" class="w-full border border-white/10 py-2 text-xs mono text-gray-500 hover:text-white magnetic modal-btn"></button></div>
@@ -273,11 +274,23 @@
         function closeModal() { document.getElementById('messengerModal').classList.remove('open'); }
         function closeMaxModal() { document.getElementById('maxInstructionModal').classList.remove('open'); }
         function closeWarningModal() { document.getElementById('warningModal').classList.remove('open'); }
-        function sendTo(type) { if (type === 'max') { navigator.clipboard.writeText(pendingText).then(() => { closeModal(); document.getElementById('maxInstructionModal').classList.add('open'); }); } }
+        function sendTo(type) { 
+            if (type === 'max') { 
+                navigator.clipboard.writeText(pendingText).then(() => { 
+                    closeModal(); 
+                    document.getElementById('maxInstructionModal').classList.add('open'); 
+                }); 
+            } else if (type === 'email') {
+                closeModal();
+                const subject = encodeURIComponent('Новый заказ с сайта КВАНТ');
+                const body = encodeURIComponent(pendingText);
+                window.location.href = `mailto:kvant4747@gmail.com?subject=${subject}&body=${body}`;
+            }
+        }
         function openMaxChat() { window.open('https://web.max.ru/', '_blank'); closeMaxModal(); }
         function warnAndSend(messenger) { selectedFallbackMessenger = messenger; const btn = document.getElementById('fallbackBtn'); btn.innerHTML = `ВСЕ ЖЕ ${messenger === 'telegram' ? 'TELEGRAM' : 'WHATSAPP'} [НЕ ЖЕЛАТЕЛЬНО]`; closeModal(); document.getElementById('warningModal').classList.add('open'); }
         function redirectToMaxFromWarning() { closeWarningModal(); navigator.clipboard.writeText(pendingText).then(() => { document.getElementById('maxInstructionModal').classList.add('open'); }); }
-        document.getElementById('fallbackBtn').onclick = function() { let url = selectedFallbackMessenger === 'telegram' ? `https://t.me/group_alpha_support?text=${encodeURIComponent(pendingText)}` : `https://wa.me/79311049644?text=${encodeURIComponent(pendingText)}`; window.open(url, '_blank'); closeWarningModal(); };
+        document.getElementById('fallbackBtn').onclick = function() { let url = selectedFallbackMessenger === 'telegram' ? `https://t.me/group_alpha_support?text=${encodeURIComponent(pendingText)}` : `https://wa.me/79397464310?text=${encodeURIComponent(pendingText)}`; window.open(url, '_blank'); closeWarningModal(); };
 
         function acceptCookies() { document.getElementById('cookieBanner').classList.add('hidden'); localStorage.setItem('kvant_cookies', 'accepted'); }
         function openPrivacyModal() { document.getElementById('privacyModal').classList.add('open'); }
